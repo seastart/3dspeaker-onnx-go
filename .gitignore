@@ -1,0 +1,41 @@
+.idea
+.DS_Store
+*/*/*/data
+*/*/*/exp
+./pretrained
+
+*.o
+*.obj
+
+*.a
+
+*.so
+
+*.dll
+
+*.exe
+*.out
+*.bin
+
+**/build/
+**/third_party/
+**/cmake-build-debug/
+**/out/
+
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Visual Studio Code
+.vscode/
+# CLion
+.idea/
+# Xcode
+*.xcodeproj
+*.xcworkspace
+
+*.swp
+*~
+**/onnx_runtime/
+**/exp/
+**/__pycache__/
