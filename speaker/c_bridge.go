@@ -2,7 +2,7 @@ package speaker
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/../c
-#cgo LDFLAGS: -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++ -Wl,-rpath=${SRCDIR}/../c/build:$ORIGIN/lib
+#cgo LDFLAGS: -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++
 
 #include <stdlib.h>
 #include "speaker_wrapper.h"

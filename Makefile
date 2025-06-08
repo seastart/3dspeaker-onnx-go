@@ -1,8 +1,22 @@
 # 定义编译器和编译选项
-CXX = g++
-CXXFLAGS = -fPIC
-INCLUDES = -I. -I/usr/local/lib/onnxruntime/include
-LDFLAGS = -L/usr/local/lib/onnxruntime/lib -lonnxruntime -lstdc++
+CXXFLAGS = -fPIC -std=c++14
+# 检测操作系统类型
+OS := $(shell uname -s)
+
+# 根据操作系统设置不同的编译选项
+ifeq ($(OS),Darwin)
+    # macOS 系统设置
+    CXX = clang++
+    INCLUDES = -I. -I/opt/homebrew/include/onnxruntime/
+    LDFLAGS = -L/opt/homebrew/lib -lonnxruntime -lstdc++
+    LIB_EXT = dylib
+else
+    # Linux系统设置
+    CXX = g++
+    INCLUDES = -I. -I/usr/local/lib/onnxruntime/include
+    LDFLAGS = -L/usr/local/lib/onnxruntime/lib -lonnxruntime -lstdc++
+    LIB_EXT = so
+endif
 
 # 定义源文件和目标文件路径
 SRC_DIR = ./c
@@ -25,7 +39,7 @@ OBJS = $(BUILD_DIR)/feature_basic.o \
 	   $(BUILD_DIR)/speaker_wrapper.o
 
 # 库文件名
-LIB = $(BUILD_DIR)/libspeaker_wrapper.so
+LIB = $(BUILD_DIR)/libspeaker_wrapper.$(LIB_EXT)
 
 # 默认目标
 all: $(LIB)
