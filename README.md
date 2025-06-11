@@ -1,4 +1,56 @@
-Golang版本onnxruntime [3D-Speaker](https://github.com/modelscope/3D-Speaker)
+# 3D-Speaker-ONNX-Go
+
+Golang版本onnxruntime
+
+3D-Speaker模型的ONNX推理实现，支持Go语言调用。本项目可作为Go库被外部项目通过`go get`方式引用。
+
+## 功能特点
+
+- 支持多平台（macOS、Linux）
+- 支持多架构（amd64/x86_64、arm64/aarch64）
+- 提供自动编译和预编译两种使用方式
+- 基于ONNX Runtime进行高效推理
+
+## 安装与使用
+
+### 方式1：自动编译（默认）
+
+直接通过Go模块引入，会自动编译C++库：
+
+```bash
+go get github.com/seastart/3dspeaker-onnx-go
+```
+
+库将自动编译所需的C++动态库。确保已安装以下依赖：
+- C++编译器（GCC 或 Clang）
+- ONNX Runtime
+- Make 工具
+
+### 方式2：使用预编译库
+
+如果不想自动编译C++库，可以下载对应平台和架构的预编译库：
+
+1. 下载预编译库：
+
+| 操作系统 | 架构 | 下载链接 |
+|---------|------|--------|
+| macOS   | Intel (amd64) | [下载](https://github.com/seastart/3dspeaker-onnx-go/releases) |
+| macOS   | Apple Silicon (arm64) | [下载](https://github.com/seastart/3dspeaker-onnx-go/releases) |
+| Linux   | x86_64 (amd64) | [下载](https://github.com/seastart/3dspeaker-onnx-go/releases) |
+| Linux   | ARM64 | [下载](https://github.com/seastart/3dspeaker-onnx-go/releases) |
+
+2. 解压到正确的位置：
+
+```bash
+# 假设您下载了macOS/arm64版本
+tar -xzf 3dspeaker-onnx-go-darwin-arm64.tar.gz -C 您的项目路径
+```
+
+3. 构建时使用`nobuild`标签跳过编译：
+
+```bash
+go build -tags nobuild
+```
 
 ## 编译方法
 

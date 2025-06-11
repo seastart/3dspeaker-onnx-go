@@ -2,7 +2,20 @@ package speaker
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/../c
-#cgo LDFLAGS: -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++
+
+// 不同操作系统和架构的库路径配置
+// 将在以下路径查找库：
+// 1. ../c/build (本地构建路径)
+// 2. ./lib/{OS}/{ARCH} (预编译库路径)
+// 3. $ORIGIN/lib (运行时相对路径)
+
+// Darwin (macOS) - 区分Intel和ARM架构
+#cgo darwin,amd64 LDFLAGS: -L${SRCDIR}/../c/build -L${SRCDIR}/lib/darwin/amd64 -lspeaker_wrapper -lstdc++ -Wl,-rpath,${SRCDIR}/../c/build:${SRCDIR}/lib/darwin/amd64:$ORIGIN/lib
+#cgo darwin,arm64 LDFLAGS: -L${SRCDIR}/../c/build -L${SRCDIR}/lib/darwin/arm64 -lspeaker_wrapper -lstdc++ -Wl,-rpath,${SRCDIR}/../c/build:${SRCDIR}/lib/darwin/arm64:$ORIGIN/lib
+
+// Linux - 区分x86_64和ARM64架构
+#cgo linux,amd64 LDFLAGS: -L${SRCDIR}/../c/build -L${SRCDIR}/lib/linux/amd64 -lspeaker_wrapper -lstdc++ -Wl,-rpath,${SRCDIR}/../c/build:${SRCDIR}/lib/linux/amd64:$ORIGIN/lib
+#cgo linux,arm64 LDFLAGS: -L${SRCDIR}/../c/build -L${SRCDIR}/lib/linux/arm64 -lspeaker_wrapper -lstdc++ -Wl,-rpath,${SRCDIR}/../c/build:${SRCDIR}/lib/linux/arm64:$ORIGIN/lib
 
 #include <stdlib.h>
 #include "speaker_wrapper.h"
@@ -79,14 +92,16 @@ var defaultFbankConfig = FbankConfig{
 
 // LoadModel 加载说话人识别模型（使用配置文件）
 // onnxModelPath: ONNX模型文件路径
-// fbankConfigPath: FBANK特征提取配置文件路径
-func LoadModel(onnxModelPath, fbankConfigPath string) (*ModelHandle, error) {
+// fbankConfigPath: FBANK特征提取配置文件路径，空采用默认配置
+func LoadModel(onnxModelPath, fbankConfigPath string) (m *ModelHandle, err error) {
+	config := defaultFbankConfig
 	// 尝试从配置文件加载参数
-	config, err := loadFbankConfig(fbankConfigPath)
-	if err != nil {
-		// 配置文件加载失败，使用默认参数
-		fmt.Printf("警告: 无法加载配置文件 %s: %v, 将使用默认参数\n", fbankConfigPath, err)
-		config = defaultFbankConfig
+	if fbankConfigPath != "" {
+		config, err = loadFbankConfig(fbankConfigPath)
+		if err != nil {
+			// 配置文件加载失败，使用默认参数
+			fmt.Printf("警告: 无法加载配置文件 %s: %v, 将使用默认参数\n", fbankConfigPath, err)
+		}
 	}
 
 	// 使用解析出的参数调用新的加载函数

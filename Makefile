@@ -1,20 +1,54 @@
 # 定义编译器和编译选项
-CXXFLAGS = -fPIC -std=c++14
+CXXFLAGS = -fPIC -std=c++17
+
 # 检测操作系统类型
 OS := $(shell uname -s)
+ifeq ($(OS),Darwin)
+    OS_LOWER = darwin
+else
+    OS_LOWER = linux
+endif
+
+# 检测CPU架构
+ARCH := $(shell uname -m)
+ifeq ($(ARCH),x86_64)
+    GO_ARCH = amd64
+else ifeq ($(ARCH),arm64)
+    GO_ARCH = arm64
+else ifeq ($(ARCH),aarch64)
+    GO_ARCH = arm64
+else
+    GO_ARCH = $(ARCH)
+endif
 
 # 根据操作系统设置不同的编译选项
 ifeq ($(OS),Darwin)
     # macOS 系统设置
     CXX = clang++
-    INCLUDES = -I. -I/opt/homebrew/include/onnxruntime/
-    LDFLAGS = -L/opt/homebrew/lib -lonnxruntime -lstdc++
+    
+    # 检查是否有自定义ONNX路径
+    ifneq ($(ONNX_PATH),)
+        INCLUDES = -I. -I$(ONNX_PATH)/include
+        LDFLAGS = -L$(ONNX_PATH)/lib -lonnxruntime -lstdc++
+    else
+        INCLUDES = -I. -I/opt/homebrew/include/onnxruntime/
+        LDFLAGS = -L/opt/homebrew/lib -lonnxruntime -lstdc++
+    endif
+    
     LIB_EXT = dylib
 else
     # Linux系统设置
     CXX = g++
-    INCLUDES = -I. -I/usr/local/lib/onnxruntime/include
-    LDFLAGS = -L/usr/local/lib/onnxruntime/lib -lonnxruntime -lstdc++
+    
+    # 检查是否有自定义ONNX路径
+    ifneq ($(ONNX_PATH),)
+        INCLUDES = -I. -I$(ONNX_PATH)/include
+        LDFLAGS = -L$(ONNX_PATH)/lib -lonnxruntime -lstdc++
+    else
+        INCLUDES = -I. -I/usr/local/lib/onnxruntime/include
+        LDFLAGS = -L/usr/local/lib/onnxruntime/lib -lonnxruntime -lstdc++
+    endif
+    
     LIB_EXT = so
 endif
 
@@ -76,4 +110,23 @@ $(LIB): $(OBJS)
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all clean
+# 安装目标 - 将库安装到预编译目录
+install: $(LIB)
+	@echo "安装库到 speaker/lib/$(OS_LOWER)/$(GO_ARCH)/"
+	@mkdir -p ./speaker/lib/$(OS_LOWER)/$(GO_ARCH)/
+	@cp $(LIB) ./speaker/lib/$(OS_LOWER)/$(GO_ARCH)/
+
+# 显示当前构建环境信息
+info:
+	@echo "操作系统: $(OS) ($(OS_LOWER))"
+	@echo "CPU架构: $(ARCH) (Go架构: $(GO_ARCH))"
+	@echo "编译器: $(CXX)"
+	@echo "库扩展名: $(LIB_EXT)"
+
+# 发布目标 - 生成发布包
+dist: clean install
+	@echo "生成适用于 $(OS_LOWER)/$(GO_ARCH) 的发布包..."
+	@tar -czf 3dspeaker-onnx-go-$(OS_LOWER)-$(GO_ARCH).tar.gz ./speaker/lib/$(OS_LOWER)/$(GO_ARCH)/
+	@echo "发布包已生成: 3dspeaker-onnx-go-$(OS_LOWER)-$(GO_ARCH).tar.gz"
+
+.PHONY: all clean install info dist
