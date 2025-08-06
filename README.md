@@ -15,7 +15,7 @@ Golang版本onnxruntime
 
 ### 方式1：自动编译（默认）
 
-直接通过Go模块引入，会自动编译C++库：
+直接通过Go模块引入，会自动编译C++库，并自动拷贝到可执行文件目录lib文件夹下：
 
 ```bash
 go get github.com/seastart/3dspeaker-onnx-go
@@ -43,7 +43,7 @@ go get github.com/seastart/3dspeaker-onnx-go
 
 ```bash
 # 假设您下载了macOS/arm64版本
-tar -xzf 3dspeaker-onnx-go-darwin-arm64.tar.gz -C 您的项目路径
+tar -xzf 3dspeaker-onnx-go-darwin-arm64.tar.gz -C 您的项目路径/lib
 ```
 
 3. 构建时使用`nobuild`标签跳过编译：

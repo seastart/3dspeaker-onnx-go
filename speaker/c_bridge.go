@@ -131,14 +131,14 @@ func LoadModelWithParams(onnxModelPath string, config FbankConfig) (*ModelHandle
 	}
 
 	// 打印使用的关键参数
-	fmt.Printf("使用传入的参数创建FbankComputer [采样率=%v, 帧移=%vms, 帧长=%vms, 滤波器数=%v, 使用对数=%v, 抖动=%v, 使用功率谱=%v]\n",
-		config.FrameExtractionOptions.SampleFreq,
-		config.FrameExtractionOptions.FrameShiftMs,
-		config.FrameExtractionOptions.FrameLengthMs,
-		config.MelBanksOptions.NumBins,
-		config.UseLogFbank,
-		config.FrameExtractionOptions.Dither,
-		config.UsePower)
+	// fmt.Printf("使用传入的参数创建FbankComputer [采样率=%v, 帧移=%vms, 帧长=%vms, 滤波器数=%v, 使用对数=%v, 抖动=%v, 使用功率谱=%v]\n",
+	// 	config.FrameExtractionOptions.SampleFreq,
+	// 	config.FrameExtractionOptions.FrameShiftMs,
+	// 	config.FrameExtractionOptions.FrameLengthMs,
+	// 	config.MelBanksOptions.NumBins,
+	// 	config.UseLogFbank,
+	// 	config.FrameExtractionOptions.Dither,
+	// 	config.UsePower)
 
 	// 调用C++函数加载模型 - 现在传递所有参数
 	handle := C.LoadSpeakerModel(
