@@ -3,6 +3,7 @@
 */*/*/data
 */*/*/exp
 ./pretrained
+/lib/
 
 *.o
 *.obj
@@ -37,3 +38,4 @@ cmake_install.cmake
 **/onnx_runtime/
 **/exp/
 **/__pycache__/
+3dspeaker-onnx-go

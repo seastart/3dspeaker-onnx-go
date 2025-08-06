@@ -10,12 +10,12 @@ package speaker
 // 3. $ORIGIN/lib (运行时相对路径)
 
 // Darwin (macOS) - 区分Intel和ARM架构
-#cgo darwin,amd64 LDFLAGS: -L./lib -L${SRCDIR}/lib/darwin/amd64 -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++ -Wl,-rpath,@loader_path/lib -Wl,-rpath,${SRCDIR}/lib/darwin/amd64 -Wl,-rpath,${SRCDIR}/../c/build
-#cgo darwin,arm64 LDFLAGS: -L./lib -L${SRCDIR}/lib/darwin/arm64 -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++ -Wl,-rpath,@loader_path/lib -Wl,-rpath,${SRCDIR}/lib/darwin/arm64 -Wl,-rpath,${SRCDIR}/../c/build
+#cgo darwin,amd64 LDFLAGS: -L${SRCDIR}/lib/darwin/amd64 -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++ -Wl,-rpath,${SRCDIR}/lib/darwin/amd64 -Wl,-rpath,${SRCDIR}/../c/build
+#cgo darwin,arm64 LDFLAGS: -L${SRCDIR}/lib/darwin/arm64 -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++ -Wl,-rpath,${SRCDIR}/lib/darwin/arm64 -Wl,-rpath,${SRCDIR}/../c/build
 
 // Linux - 区分x86_64和ARM64架构
-#cgo linux,amd64 LDFLAGS: -L./lib -L${SRCDIR}/lib/linux/amd64 -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++ -Wl,-rpath,$ORIGIN/lib -Wl,-rpath,${SRCDIR}/lib/linux/amd64 -Wl,-rpath,${SRCDIR}/../c/build
-#cgo linux,arm64 LDFLAGS: -L./lib -L${SRCDIR}/lib/linux/arm64 -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++ -Wl,-rpath,$ORIGIN/lib -Wl,-rpath,${SRCDIR}/lib/linux/arm64 -Wl,-rpath,${SRCDIR}/../c/build
+#cgo linux,amd64 LDFLAGS: -L${SRCDIR}/lib/linux/amd64 -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++ -Wl,-rpath,$ORIGIN/lib -Wl,-rpath,${SRCDIR}/lib/linux/amd64 -Wl,-rpath,${SRCDIR}/../c/build
+#cgo linux,arm64 LDFLAGS: -L${SRCDIR}/lib/linux/arm64 -L${SRCDIR}/../c/build -lspeaker_wrapper -lstdc++ -Wl,-rpath,$ORIGIN/lib -Wl,-rpath,${SRCDIR}/lib/linux/arm64 -Wl,-rpath,${SRCDIR}/../c/build
 
 #include <stdlib.h>
 #include "speaker_wrapper.h"
