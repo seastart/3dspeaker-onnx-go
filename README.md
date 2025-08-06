@@ -19,6 +19,7 @@ Golang版本onnxruntime
 
 ```bash
 go get github.com/seastart/3dspeaker-onnx-go
+go generate github.com/seastart/3dspeaker-onnx-go
 ```
 
 库将自动编译所需的C++动态库。确保已安装以下依赖：
@@ -44,12 +45,6 @@ go get github.com/seastart/3dspeaker-onnx-go
 ```bash
 # 假设您下载了macOS/arm64版本
 tar -xzf 3dspeaker-onnx-go-darwin-arm64.tar.gz -C 您的项目路径/lib
-```
-
-3. 构建时使用`nobuild`标签跳过编译：
-
-```bash
-go build -tags nobuild
 ```
 
 ## 编译方法

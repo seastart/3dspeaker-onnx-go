@@ -1,7 +1,7 @@
-//go:build !nobuild
-// +build !nobuild
+//go:build tools
+// +build tools
 
-package speaker
+package main
 
 import (
 	"fmt"
@@ -12,66 +12,75 @@ import (
 	"runtime"
 )
 
-//go:generate make -C ../c
-
-// init 初始化函数，在包首次导入时执行
-// 负责检查和确保C++库已正确编译
-func init() {
+// main 函数，用于构建和拷贝C++库到工作目录
+func main() {
 	// 获取当前操作系统和CPU架构
 	osType := runtime.GOOS
 	archType := runtime.GOARCH
-	// fmt.Println("executableDir", getExecutableRoot(), "moduleSrcRoot", getModuleSrcRoot())
+	fmt.Println("workDir", getWorkDir(), "moduleSrcRoot", getModuleSrcRoot())
 
 	// 尝试寻找预编译库
 	libName := getLibName(osType)
-	executableLibPath := filepath.Join(getExecutableRoot(), "lib")
+	workdirLibPath := filepath.Join(getWorkDir(), "lib")
 	prebuiltPath := filepath.Join(getModuleSrcRoot(), "speaker", "lib", osType, archType)
 	builtPath := filepath.Join(getModuleSrcRoot(), "c", "build")
 
 	// 检查预编译库是否存在
-	executableLibExists := checkLibExists(executableLibPath, libName)
+	workdirLibExists := checkLibExists(workdirLibPath, libName)
 	prebuiltExists := checkLibExists(prebuiltPath, libName)
 	builtExists := checkLibExists(builtPath, libName)
 
 	// 如果库已经存在（优先使用可执行文件目录lib，然后是预编译库或已构建库），直接返回
-	if executableLibExists {
-		// fmt.Printf("已找到 %s/%s 库文件\n", osType, archType)
-		return
-	} else if prebuiltExists {
-		// 自动拷贝预编译库到可执行文件目录
-		if err := copyLibFile(prebuiltPath, executableLibPath, libName); err == nil {
-			fmt.Printf("3d-speaker C++库已拷贝至: %s\n", executableLibPath)
-		}
-		return
-	} else if builtExists {
-		// 自动拷贝已构建库到可执行文件目录
-		if err := copyLibFile(builtPath, executableLibPath, libName); err == nil {
-			fmt.Printf("3d-speaker C++库已拷贝至: %s\n", executableLibPath)
-		}
+	if workdirLibExists {
+		fmt.Printf("3d-speaker C++库已存在: %s\n", workdirLibPath)
 		return
 	}
 
-	// 如果库不存在，尝试构建
-	fmt.Printf("正在为 %s/%s 构建3d-speaker C++库...\n", osType, archType)
+	// 尝试从预编译库拷贝
+	if prebuiltExists {
+		if err := copyLibFile(prebuiltPath, workdirLibPath, libName); err == nil {
+			fmt.Printf("3d-speaker C++库已从预编译库拷贝至: %s\n", workdirLibPath)
+			return
+		} else {
+			fmt.Printf("拷贝预编译库失败: %v\n", err)
+		}
+	}
+
+	// 尝试从已构建库拷贝
+	if builtExists {
+		if err := copyLibFile(builtPath, workdirLibPath, libName); err == nil {
+			fmt.Printf("3d-speaker C++库已从构建库拷贝至: %s\n", workdirLibPath)
+			return
+		} else {
+			fmt.Printf("拷贝构建库失败: %v\n", err)
+		}
+	}
+
+	// 如果都没有，尝试构建
+	fmt.Printf("正在构建3d-speaker C++库...\n")
 	if err := buildLib(); err != nil {
 		fmt.Printf("3d-speaker C++库构建失败: %v\n", err)
 		fmt.Println("请查看 https://github.com/seastart/3dspeaker-onnx-go 获取预编译库或手动构建说明")
-		// 不直接退出，让用户决定如何处理
-	} else {
-		// 自动拷贝文件到可执行文件目录
-		if err := copyLibFile(builtPath, executableLibPath, libName); err != nil {
-			fmt.Printf("拷贝库文件失败: %v\n", err)
-			fmt.Println("3d-speaker C++库构建成功，但拷贝失败，请手动拷贝至: ", executableLibPath)
-		} else {
-			fmt.Printf("3d-speaker C++库构建成功，并已拷贝至: %s\n", executableLibPath)
-		}
+		os.Exit(1)
 	}
+
+	// 构建成功后拷贝
+	if err := copyLibFile(builtPath, workdirLibPath, libName); err != nil {
+		fmt.Printf("拷贝库文件失败: %v\n", err)
+		fmt.Printf("3d-speaker C++库构建成功，但拷贝失败，请手动拷贝 %s 至 %s\n",
+			filepath.Join(builtPath, libName), workdirLibPath)
+		os.Exit(1)
+	}
+
+	fmt.Printf("3d-speaker C++库构建成功，并已拷贝至: %s\n", workdirLibPath)
 }
 
-// 获取可执行文件所在目录
-func getExecutableRoot() string {
-	executableDir, _ := os.Executable()
-	return filepath.Dir(executableDir)
+// 获取当前工作目录
+func getWorkDir() string {
+	wd, _ := os.Getwd()
+	return wd
+	// executableDir, _ := os.Executable()
+	// return filepath.Dir(executableDir)
 }
 
 // getModuleSrcRoot 获取模块源码根目录
