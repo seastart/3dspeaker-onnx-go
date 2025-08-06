@@ -185,5 +185,39 @@ func copyLibFile(srcDir, destDir, libName string) error {
 		return fmt.Errorf("设置文件权限失败: %w", err)
 	}
 
+	// 如果是macOS的dylib文件，需要修改install name
+	if runtime.GOOS == "darwin" && filepath.Ext(libName) == ".dylib" {
+		if err := fixDylibInstallName(destFile); err != nil {
+			fmt.Printf("⚠️  修改dylib install name失败: %v\n", err)
+			fmt.Println("   库文件已拷贝，但可能需要手动修复路径问题")
+			// 不返回错误，因为库文件本身已经拷贝成功
+		}
+	}
+
+	return nil
+}
+
+// fixDylibInstallName 修复macOS dylib的install name
+func fixDylibInstallName(dylibPath string) error {
+	// 获取当前的install name
+	cmd := exec.Command("otool", "-D", dylibPath)
+	output, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("获取当前install name失败: %w", err)
+	}
+
+	fmt.Printf("当前dylib install name:\n%s", string(output))
+
+	// 构建新的install name (使用@rpath前缀)
+	libName := filepath.Base(dylibPath)
+	newInstallName := "@rpath/" + libName
+
+	// 使用install_name_tool修改install name
+	cmd = exec.Command("install_name_tool", "-id", newInstallName, dylibPath)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("修改install name失败: %w", err)
+	}
+
+	fmt.Printf("✅ 已修改dylib install name为: %s\n", newInstallName)
 	return nil
 }
