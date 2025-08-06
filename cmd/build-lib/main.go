@@ -1,6 +1,3 @@
-//go:build tools
-// +build tools
-
 package main
 
 import (
@@ -12,12 +9,16 @@ import (
 	"runtime"
 )
 
-// main 函数，用于构建和拷贝C++库到工作目录
+// main 函数，用于构建和拷贝C++库到用户的工作目录
+// 这个工具可以被用户通过 go run github.com/seastart/3dspeaker-onnx-go/cmd/build-lib 调用
 func main() {
 	// 获取当前操作系统和CPU架构
 	osType := runtime.GOOS
 	archType := runtime.GOARCH
-	fmt.Println("workDir", getWorkDir(), "moduleSrcRoot", getModuleSrcRoot())
+
+	fmt.Printf("正在为 %s/%s 构建 3dspeaker C++ 库...\n", osType, archType)
+	fmt.Printf("工作目录: %s\n", getWorkDir())
+	fmt.Printf("模块源码目录: %s\n", getModuleSrcRoot())
 
 	// 尝试寻找预编译库
 	libName := getLibName(osType)
@@ -30,65 +31,71 @@ func main() {
 	prebuiltExists := checkLibExists(prebuiltPath, libName)
 	builtExists := checkLibExists(builtPath, libName)
 
-	// 如果库已经存在（优先使用可执行文件目录lib，然后是预编译库或已构建库），直接返回
+	// 如果库已经存在，询问是否重新构建
 	if workdirLibExists {
-		fmt.Printf("3d-speaker C++库已存在: %s\n", workdirLibPath)
+		fmt.Printf("3dspeaker C++ 库已存在: %s\n", filepath.Join(workdirLibPath, libName))
+		fmt.Println("如需重新构建，请先删除现有库文件")
 		return
 	}
 
 	// 尝试从预编译库拷贝
 	if prebuiltExists {
+		fmt.Printf("发现预编译库，正在拷贝...\n")
 		if err := copyLibFile(prebuiltPath, workdirLibPath, libName); err == nil {
-			fmt.Printf("3d-speaker C++库已从预编译库拷贝至: %s\n", workdirLibPath)
+			fmt.Printf("✅ 3dspeaker C++ 库已从预编译库拷贝至: %s\n", filepath.Join(workdirLibPath, libName))
 			return
 		} else {
-			fmt.Printf("拷贝预编译库失败: %v\n", err)
+			fmt.Printf("❌ 拷贝预编译库失败: %v\n", err)
 		}
 	}
 
 	// 尝试从已构建库拷贝
 	if builtExists {
+		fmt.Printf("发现已构建库，正在拷贝...\n")
 		if err := copyLibFile(builtPath, workdirLibPath, libName); err == nil {
-			fmt.Printf("3d-speaker C++库已从构建库拷贝至: %s\n", workdirLibPath)
+			fmt.Printf("✅ 3dspeaker C++ 库已从构建库拷贝至: %s\n", filepath.Join(workdirLibPath, libName))
 			return
 		} else {
-			fmt.Printf("拷贝构建库失败: %v\n", err)
+			fmt.Printf("❌ 拷贝构建库失败: %v\n", err)
 		}
 	}
 
 	// 如果都没有，尝试构建
-	fmt.Printf("正在构建3d-speaker C++库...\n")
+	fmt.Printf("🔨 正在从源码构建 3dspeaker C++ 库...\n")
 	if err := buildLib(); err != nil {
-		fmt.Printf("3d-speaker C++库构建失败: %v\n", err)
-		fmt.Println("请查看 https://github.com/seastart/3dspeaker-onnx-go 获取预编译库或手动构建说明")
+		fmt.Printf("❌ 3dspeaker C++ 库构建失败: %v\n", err)
+		fmt.Println("\n请尝试以下解决方案:")
+		fmt.Println("1. 查看 https://github.com/seastart/3dspeaker-onnx-go 获取预编译库")
+		fmt.Println("2. 确保系统已安装必要的构建工具 (cmake, make, gcc/clang)")
+		fmt.Println("3. 手动构建说明请参考项目 README")
 		os.Exit(1)
 	}
 
 	// 构建成功后拷贝
 	if err := copyLibFile(builtPath, workdirLibPath, libName); err != nil {
-		fmt.Printf("拷贝库文件失败: %v\n", err)
-		fmt.Printf("3d-speaker C++库构建成功，但拷贝失败，请手动拷贝 %s 至 %s\n",
-			filepath.Join(builtPath, libName), workdirLibPath)
+		fmt.Printf("❌ 拷贝库文件失败: %v\n", err)
+		fmt.Printf("3dspeaker C++ 库构建成功，但拷贝失败\n")
+		fmt.Printf("请手动拷贝 %s 至 %s\n",
+			filepath.Join(builtPath, libName), filepath.Join(workdirLibPath, libName))
 		os.Exit(1)
 	}
 
-	fmt.Printf("3d-speaker C++库构建成功，并已拷贝至: %s\n", workdirLibPath)
+	fmt.Printf("✅ 3dspeaker C++ 库构建成功，并已拷贝至: %s\n", filepath.Join(workdirLibPath, libName))
+	fmt.Println("\n现在您可以正常使用 3dspeaker-onnx-go 库了！")
 }
 
-// 获取当前工作目录
+// 获取当前工作目录（用户项目的根目录）
 func getWorkDir() string {
 	wd, _ := os.Getwd()
 	return wd
-	// executableDir, _ := os.Executable()
-	// return filepath.Dir(executableDir)
 }
 
-// getModuleSrcRoot 获取模块源码根目录
+// getModuleSrcRoot 获取 3dspeaker-onnx-go 模块源码根目录
 func getModuleSrcRoot() string {
 	// 获取当前文件所在目录
 	_, currentFile, _, _ := runtime.Caller(0)
-	// 返回上级目录作为模块根目录
-	return filepath.Dir(filepath.Dir(currentFile))
+	// 返回上上级目录作为模块根目录 (cmd/build-lib -> cmd -> root)
+	return filepath.Dir(filepath.Dir(filepath.Dir(currentFile)))
 }
 
 // checkLibExists 检查指定目录中是否存在库文件
@@ -105,6 +112,8 @@ func getLibName(osType string) string {
 		return "libspeaker_wrapper.dylib"
 	case "linux":
 		return "libspeaker_wrapper.so"
+	case "windows":
+		return "libspeaker_wrapper.dll"
 	default:
 		return "libspeaker_wrapper.so" // 默认采用Linux命名规则
 	}
@@ -121,7 +130,7 @@ func buildLib() error {
 	}
 
 	// 执行make命令
-	cmd := exec.Command("make", "-C", filepath.Join(rootDir))
+	cmd := exec.Command("make", "-C", rootDir)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

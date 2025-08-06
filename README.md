@@ -13,13 +13,33 @@ Golang版本onnxruntime
 
 ## 安装与使用
 
-### 方式1：自动编译（默认）
+### 方式1：使用独立构建工具（推荐）
 
-直接通过Go模块引入，会自动编译C++库，并自动拷贝到可执行文件目录lib文件夹下：
+在您的项目中使用以下命令来获取和构建库：
 
 ```bash
+# 1. 获取库
 go get github.com/seastart/3dspeaker-onnx-go
-go generate github.com/seastart/3dspeaker-onnx-go
+
+# 2. 构建并拷贝C++库到当前项目lib目录
+go run github.com/seastart/3dspeaker-onnx-go/cmd/build-lib
+
+# 3. 现在可以正常使用库了
+go build your-project.go
+```
+
+这种方式的优势：
+- ✅ 可以在任何依赖此库的项目中使用
+- ✅ 自动检测和使用预编译库
+- ✅ 必要时自动从源码构建
+- ✅ 友好的错误提示和进度显示
+
+### 方式2：开发模式（仅限库开发者）
+
+如果您是在 3dspeaker-onnx-go 库本身的项目中开发：
+
+```bash
+go generate ./speaker
 ```
 
 库将自动编译所需的C++动态库。确保已安装以下依赖：
@@ -27,7 +47,7 @@ go generate github.com/seastart/3dspeaker-onnx-go
 - ONNX Runtime
 - Make 工具
 
-### 方式2：使用预编译库
+### 方式3：使用预编译库
 
 如果不想自动编译C++库，可以下载对应平台和架构的预编译库：
 
