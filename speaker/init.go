@@ -8,7 +8,7 @@ import (
 )
 
 // init 初始化函数，在包首次导入时执行
-// 负责检查C++库是否存在，如果不存在则提示用户运行 go generate
+// 负责检查C++库是否存在，如果不存在则提示用户运行 go run
 func init() {
 	// 获取当前操作系统
 	osType := runtime.GOOS
@@ -24,10 +24,10 @@ func init() {
 		return
 	}
 
-	// 如果库不存在，提示用户运行 go generate
+	// 如果库不存在，提示用户运行 go run
 	fmt.Printf("警告: 3d-speaker C++库文件不存在\n")
 	fmt.Printf("请运行以下命令生成库文件:\n")
-	fmt.Printf("  go generate %s\n", "github.com/seastart/3dspeaker-onnx-go/speaker")
+	fmt.Printf("  go run github.com/seastart/3dspeaker-onnx-go/cmd/build-lib\n")
 	fmt.Printf("或者查看 https://github.com/seastart/3dspeaker-onnx-go 获取预编译库\n")
 }
 

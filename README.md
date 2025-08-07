@@ -39,7 +39,7 @@ go build your-project.go
 如果您是在 3dspeaker-onnx-go 库本身的项目中开发：
 
 ```bash
-go generate ./speaker
+make
 ```
 
 库将自动编译所需的C++动态库。确保已安装以下依赖：
